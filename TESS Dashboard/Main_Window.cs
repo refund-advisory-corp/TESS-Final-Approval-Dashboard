@@ -215,6 +215,8 @@ namespace TESS_Dashboard
                 ConditionFields.Add("ACLT_APPL_RECV <= @ACLT_APPL_RECV_TO", new Tuple<string, object>("@ACLT_APPL_RECV_TO", new DateTime(DateTimePicker_App_Recv_To.Value.Year, DateTimePicker_App_Recv_To.Value.Month ,DateTimePicker_App_Recv_To.Value.Day)));
             }
 
+            ConditionFields.Add("ACLT_AGR_TYPE = @Type", new Tuple<string, object>("@Type", 'T'));
+
             foreach (string aKey in ConditionFields.Keys)
             {
                 RecordListCommand.Conditions.Add(aKey);
