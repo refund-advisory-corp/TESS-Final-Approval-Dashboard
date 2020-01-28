@@ -285,7 +285,7 @@ namespace TESS_Dashboard
             DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["HexOnly"].Index], ListSortDirection.Descending);
             DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["HexAndO65"].Index], ListSortDirection.Descending);
 
-            return ReturnedRecords.GetUpperBound(0) > 0;
+            return ReturnedRecords.GetUpperBound(0) > -1;
         }
 
 
@@ -882,24 +882,38 @@ namespace TESS_Dashboard
 
         private void Button_PDF1_Open_Click(object sender, EventArgs e)
         {
-            using (Process myProcess = new Process())
+            if (System.IO.File.Exists(DisplayPDF1.src))
             {
-                myProcess.StartInfo.UseShellExecute = true;
-                myProcess.StartInfo.FileName = @"C:\Program Files (x86)\PDF Pro 10\PDFEditor.exe";
-                myProcess.StartInfo.Arguments = DisplayPDF1.src;
-                myProcess.Start();
+                using (Process myProcess = new Process())
+                {
+                    myProcess.StartInfo.UseShellExecute = true;
+                    myProcess.StartInfo.FileName = @"C:\Program Files (x86)\PDF Pro 10\PDFEditor.exe";
+                    myProcess.StartInfo.Arguments = DisplayPDF1.src;
+                    myProcess.Start();
+                }
             }
-                
+            else
+            {
+                MessageBox.Show("PDF1 does not point to a findable file path!");
+            }
+
         }
 
         private void Button_PDF2_Open_Click(object sender, EventArgs e)
         {
-            using (Process myProcess = new Process())
+            if (System.IO.File.Exists(DisplayPDF2.src))
             {
-                myProcess.StartInfo.UseShellExecute = true;
-                myProcess.StartInfo.FileName = @"C:\Program Files (x86)\PDF Pro 10\PDFEditor.exe";
-                myProcess.StartInfo.Arguments = DisplayPDF2.src;
-                myProcess.Start();
+                using (Process myProcess = new Process())
+                {
+                    myProcess.StartInfo.UseShellExecute = true;
+                    myProcess.StartInfo.FileName = @"C:\Program Files (x86)\PDF Pro 10\PDFEditor.exe";
+                    myProcess.StartInfo.Arguments = DisplayPDF2.src;
+                    myProcess.Start();
+                }
+            }
+            else
+            {
+                MessageBox.Show("PDF2 does not point to a findable file path!");
             }
         }
 
