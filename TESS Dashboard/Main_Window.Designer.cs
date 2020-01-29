@@ -142,8 +142,6 @@
             // 
             this.CheckBox_ASLS_STATUS_TESS.AutoSize = true;
             this.CheckBox_ASLS_STATUS_TESS.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.CheckBox_ASLS_STATUS_TESS.Checked = true;
-            this.CheckBox_ASLS_STATUS_TESS.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CheckBox_ASLS_STATUS_TESS.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CheckBox_ASLS_STATUS_TESS.Location = new System.Drawing.Point(249, 58);
             this.CheckBox_ASLS_STATUS_TESS.Name = "CheckBox_ASLS_STATUS_TESS";
@@ -157,6 +155,8 @@
             // 
             this.CheckBox_ASLS_STATUS.AutoSize = true;
             this.CheckBox_ASLS_STATUS.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.CheckBox_ASLS_STATUS.Checked = true;
+            this.CheckBox_ASLS_STATUS.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CheckBox_ASLS_STATUS.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CheckBox_ASLS_STATUS.Location = new System.Drawing.Point(225, 29);
             this.CheckBox_ASLS_STATUS.Name = "CheckBox_ASLS_STATUS";
@@ -297,7 +297,7 @@
             this.Button_Accept.Name = "Button_Accept";
             this.Button_Accept.Size = new System.Drawing.Size(149, 35);
             this.Button_Accept.TabIndex = 34;
-            this.Button_Accept.Text = "Accept";
+            this.Button_Accept.Text = "Approve";
             this.Button_Accept.UseVisualStyleBackColor = false;
             this.Button_Accept.Click += new System.EventHandler(this.Button_Accept_Click);
             // 

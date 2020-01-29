@@ -18,6 +18,7 @@ using System.DirectoryServices.AccountManagement;
 using ActiveDs;
 using Microsoft.VisualBasic;
 using System.Diagnostics;
+using System.IO;
 
 namespace TESS_Dashboard
 {
@@ -447,31 +448,80 @@ namespace TESS_Dashboard
 
                 if (ReturnedRecords.GetUpperBound(0) > 0)
                 {
-                    //DisplayPDF1.src = "file:////" + Convert.ToString(ReturnedRecords[0, 0]);
-                    DisplayPDF1.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
-                    DisplayPDF1.setLayoutMode("TwoColumnLeft");
-                    DisplayPDF1.gotoFirstPage();
-                    DisplayPDF1.gotoNextPage();
+                    if (File.Exists(Convert.ToString(ReturnedRecords[0, 0])))
+                    {
+                        if (!IsFileLocked(Convert.ToString(ReturnedRecords[0, 0])))
+                        {
+                            //DisplayPDF1.src = "file:////" + Convert.ToString(ReturnedRecords[0, 0]);
+                            DisplayPDF1.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
+                            DisplayPDF1.setLayoutMode("TwoColumnLeft");
+                            DisplayPDF1.gotoFirstPage();
+                            DisplayPDF1.gotoNextPage();
 
-                    DisplayPDF2.LoadFile(Convert.ToString(ReturnedRecords[1, 0]));
-                    DisplayPDF2.setLayoutMode("TwoColumnLeft");
-                    DisplayPDF2.gotoFirstPage();
-                    DisplayPDF2.gotoNextPage();
+                        }
+                        else
+                        {
+                            MessageBox.Show("File path is locked! " + ReturnedRecords[0, 0].ToString());
+                        }
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("File path not found! " + ReturnedRecords[0, 0].ToString());
+                    }
+
+                    if (File.Exists(Convert.ToString(ReturnedRecords[1, 0])))
+                    {
+                        if (!IsFileLocked(Convert.ToString(ReturnedRecords[1, 0])))
+                        {
+
+                            DisplayPDF2.LoadFile(Convert.ToString(ReturnedRecords[1, 0]));
+                            DisplayPDF2.setLayoutMode("TwoColumnLeft");
+                            DisplayPDF2.gotoFirstPage();
+                            DisplayPDF2.gotoNextPage();
+                            DisplayPDF2.gotoNextPage();
+                        }
+                        else
+                        {
+                            MessageBox.Show("File path is locked! " + ReturnedRecords[1, 0].ToString());
+                        }
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("File path not found! " + ReturnedRecords[1, 0].ToString());
+                    }
                 }
                 else if (ReturnedRecords.GetUpperBound(0) > -1)
                 {
 
-                    //DisplayPDF1.src = "file:////" + Convert.ToString(ReturnedRecords[0, 0]);
-                    DisplayPDF1.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
-                    DisplayPDF1.setLayoutMode("TwoColumnLeft");
-                    DisplayPDF1.gotoFirstPage();
-                    DisplayPDF1.gotoNextPage();
+                    if (File.Exists(Convert.ToString(ReturnedRecords[0, 0])))
+                    {
+                        if (!IsFileLocked(Convert.ToString(ReturnedRecords[0, 0])))
+                        {
+                            //DisplayPDF1.src = "file:////" + Convert.ToString(ReturnedRecords[0, 0]);
+                            DisplayPDF1.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
+                            DisplayPDF1.setLayoutMode("TwoColumnLeft");
+                            DisplayPDF1.gotoFirstPage();
+                            DisplayPDF1.gotoNextPage();
 
-                    DisplayPDF2.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
-                    DisplayPDF2.setLayoutMode("TwoColumnLeft");
-                    DisplayPDF2.gotoFirstPage();
-                    DisplayPDF2.gotoNextPage();
-                    DisplayPDF2.gotoNextPage();
+                            DisplayPDF2.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
+                            DisplayPDF2.setLayoutMode("TwoColumnLeft");
+                            DisplayPDF2.gotoFirstPage();
+                            DisplayPDF2.gotoNextPage();
+                            DisplayPDF2.gotoNextPage();
+                        }
+                        else
+                        {
+                            MessageBox.Show("File path is locked! " + ReturnedRecords[0, 0].ToString());
+                        }
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("File path not found! " + ReturnedRecords[0, 0].ToString());
+                    }
+                    
                 }
                 else
                 {
@@ -604,6 +654,29 @@ namespace TESS_Dashboard
             }
 
             lblRecordProgress.Text = "Record " + Convert.ToString(OnRecord + 1) + " of " + Convert.ToString(DataGridView_Sales_Records.Rows.Count - 1); //Accounts for the null row
+        }
+
+        private bool IsFileLocked(string FilePath)
+        {
+            FileInfo file = new FileInfo(FilePath);
+            try
+            {
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (IOException)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                return true;
+            }
+
+            //file is not locked
+            return false;
         }
 
         private void DisplayPDF2_Enter(object sender, EventArgs e)
