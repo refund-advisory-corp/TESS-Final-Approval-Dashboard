@@ -108,6 +108,7 @@
             this.Button_PDF1_Open = new System.Windows.Forms.Button();
             this.Button_PDF2_Open = new System.Windows.Forms.Button();
             this.lbl_ACLT_MISC_NOTES = new GrowLabel();
+            this.CheckBox_ReverseSort = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView_Sales_Records)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DisplayPDF1)).BeginInit();
@@ -118,6 +119,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.CheckBox_ReverseSort);
             this.groupBox1.Controls.Add(this.CheckBox_ASLS_STATUS_TESS);
             this.groupBox1.Controls.Add(this.CheckBox_ASLS_STATUS);
             this.groupBox1.Controls.Add(this.ComboBox_ASLS_STATUS);
@@ -190,7 +192,7 @@
             // DataGridView_Sales_Records
             // 
             this.DataGridView_Sales_Records.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.DataGridView_Sales_Records.Location = new System.Drawing.Point(292, 174);
+            this.DataGridView_Sales_Records.Location = new System.Drawing.Point(170, 22);
             this.DataGridView_Sales_Records.Name = "DataGridView_Sales_Records";
             this.DataGridView_Sales_Records.Size = new System.Drawing.Size(18, 12);
             this.DataGridView_Sales_Records.TabIndex = 33;
@@ -995,6 +997,18 @@
             this.lbl_ACLT_MISC_NOTES.TabIndex = 97;
             this.lbl_ACLT_MISC_NOTES.Text = "ACLT_MISC_NOTES";
             // 
+            // CheckBox_ReverseSort
+            // 
+            this.CheckBox_ReverseSort.AutoSize = true;
+            this.CheckBox_ReverseSort.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.CheckBox_ReverseSort.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CheckBox_ReverseSort.Location = new System.Drawing.Point(245, 165);
+            this.CheckBox_ReverseSort.Name = "CheckBox_ReverseSort";
+            this.CheckBox_ReverseSort.Size = new System.Drawing.Size(109, 23);
+            this.CheckBox_ReverseSort.TabIndex = 98;
+            this.CheckBox_ReverseSort.Text = "Reverse Sort";
+            this.CheckBox_ReverseSort.UseVisualStyleBackColor = true;
+            // 
             // Main_Window
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1153,5 +1167,6 @@
         private System.Windows.Forms.Button Button_PDF1_Open;
         private System.Windows.Forms.Button Button_PDF2_Open;
         private GrowLabel lbl_ACLT_MISC_NOTES;
+        private System.Windows.Forms.CheckBox CheckBox_ReverseSort;
     }
 }

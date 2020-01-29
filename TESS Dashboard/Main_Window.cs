@@ -107,7 +107,7 @@ namespace TESS_Dashboard
         }
 
 
-        private bool SearchRecords(SqlConnection con)
+        private bool SearchRecords(SqlConnection con, int acct = 0)
         {
 
             Dictionary<string, System.Type> RequestFields = new Dictionary<string, System.Type>(); //MPA 12/13/2019 organize field getting
@@ -148,6 +148,7 @@ namespace TESS_Dashboard
             RequestFields.Add("PRCL_SITUS_ZIP", typeof(string));
             RequestFields.Add("PRCL_SITUS_STATE", typeof(string));
 
+            RequestFields.Add("ACLT_APP_APPROVED", typeof(DateTime));
             RequestFields.Add("ACLT_SIGNED", typeof(bool));
             RequestFields.Add("ACLT_DOB1", typeof(DateTime));
             RequestFields.Add("ACLT_DOB2", typeof(DateTime));
@@ -218,75 +219,147 @@ namespace TESS_Dashboard
 
             ConditionFields.Add("ACLT_AGR_TYPE = @Type", new Tuple<string, object>("@Type", 'T'));
 
-            foreach (string aKey in ConditionFields.Keys)
-            {
-                RecordListCommand.Conditions.Add(aKey);
+            bool returnbool = false;
 
-                if (ConditionFields[aKey].Item1 != null)
+            if (acct == 0)
+            {
+                foreach (string aKey in ConditionFields.Keys)
                 {
-                    RecordListCommand.Parameters.Add(ConditionFields[aKey].Item1, ConditionFields[aKey].Item2);
+                    RecordListCommand.Conditions.Add(aKey);
+
+                    if (ConditionFields[aKey].Item1 != null)
+                    {
+                        RecordListCommand.Parameters.Add(ConditionFields[aKey].Item1, ConditionFields[aKey].Item2);
+                    }
                 }
-            }
-            
-            RecordListCommand.Select();
-            object[,] ReturnedRecords = RecordListCommand.SelectResults;
 
-            DataGridView_Sales_Records.Columns.Clear();
+                RecordListCommand.Select();
+                object[,] ReturnedRecords = RecordListCommand.SelectResults;
 
-            int counter = 0;
-            foreach (string aKey in RequestFields.Keys)
-            {
-                string ColumnName = aKey;
-                if (ColumnName.IndexOf(" AS ") > 0)
+                DataGridView_Sales_Records.Columns.Clear();
+
+                int counter = 0;
+                foreach (string aKey in RequestFields.Keys)
                 {
-                    ColumnName = ColumnName.Substring(ColumnName.IndexOf(" AS ") + 4, ColumnName.Length - (ColumnName.IndexOf(" AS ") + 4));
-                }
-                DataGridView_Sales_Records.Columns.Add(ColumnName, ColumnName);
+                    string ColumnName = aKey;
+                    if (ColumnName.IndexOf(" AS ") > 0)
+                    {
+                        ColumnName = ColumnName.Substring(ColumnName.IndexOf(" AS ") + 4, ColumnName.Length - (ColumnName.IndexOf(" AS ") + 4));
+                    }
+                    DataGridView_Sales_Records.Columns.Add(ColumnName, ColumnName);
 
-                DataGridView_Sales_Records.Columns[counter++].ValueType = RequestFields[aKey];
+                    DataGridView_Sales_Records.Columns[counter++].ValueType = RequestFields[aKey];
+                }
+
+                for (int i = 0; i <= ReturnedRecords.GetUpperBound(0); i++)
+                {
+
+                    object[] RowToAdd = new object[ReturnedRecords.GetUpperBound(1) + 1];
+
+                    for (int j = 0; j <= ReturnedRecords.GetUpperBound(1); j++)
+                    {
+                        dynamic ColumnType = DataGridView_Sales_Records.Columns[j].ValueType;
+                        if (ColumnType == typeof(int))
+                        {
+                            RowToAdd[j] = ReturnedRecords[i, j];
+                        }
+                        else if (ColumnType == typeof(String) || ColumnType == typeof(string))
+                        {
+                            RowToAdd[j] = ReturnedRecords[i, j] ?? "";
+                        }
+                        else if (ColumnType == typeof(DateTime))
+                        {
+                            RowToAdd[j] = ReturnedRecords[i, j] ?? new DateTime(1, 1, 1);
+                        }
+                        else if (ColumnType == typeof(bool))
+                        {
+                            RowToAdd[j] = ReturnedRecords[i, j] ?? false;
+                        }
+                        else
+                        {
+                            RowToAdd[j] = ReturnedRecords[i, j];
+                        }
+                    }
+
+                    DataGridView_Sales_Records.Rows.Add(RowToAdd);
+                }
+
+                ListSortDirection TheDirection = CheckBox_ReverseSort.Checked ? ListSortDirection.Ascending : ListSortDirection.Descending;
+
+                DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_PREV"].Index], TheDirection);
+                DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_LAST"].Index], TheDirection);
+                DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_CURR"].Index], TheDirection);
+                DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_NEXT"].Index], TheDirection);
+                DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["HexOnly"].Index], TheDirection);
+                DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["HexAndO65"].Index], TheDirection);
+
+                returnbool = ReturnedRecords.GetUpperBound(0) > -1;
             }
-            
-            for (int i = 0; i <= ReturnedRecords.GetUpperBound(0); i++)
+            else
             {
+                ConditionFields.Add("ACCT = @Acct", new Tuple<string, object>("@Acct", acct));
+
+                foreach (string aKey in ConditionFields.Keys)
+                {
+                    RecordListCommand.Conditions.Add(aKey);
+
+                    if (ConditionFields[aKey].Item1 != null)
+                    {
+                        RecordListCommand.Parameters.Add(ConditionFields[aKey].Item1, ConditionFields[aKey].Item2);
+                    }
+                }
+
+                RecordListCommand.Select();
+                object[,] ReturnedRecords = RecordListCommand.SelectResults;
 
                 object[] RowToAdd = new object[ReturnedRecords.GetUpperBound(1) + 1];
 
-                for (int j = 0; j <= ReturnedRecords.GetUpperBound(1); j++)
+                int searchValue = acct;
+                int rowIndex = -1;
+                foreach (DataGridViewRow row in DataGridView_Sales_Records.Rows)
                 {
-                    dynamic ColumnType = DataGridView_Sales_Records.Columns[j].ValueType;
-                    if (ColumnType == typeof(int))
+                    if (row.Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value.Equals(searchValue))
                     {
-                        RowToAdd[j] = ReturnedRecords[i, j];
-                    }
-                    else if (ColumnType == typeof(String) || ColumnType == typeof(string))
-                    {
-                        RowToAdd[j] = ReturnedRecords[i, j] ?? "";
-                    }
-                    else if (ColumnType == typeof(DateTime))
-                    {
-                        RowToAdd[j] = ReturnedRecords[i, j] ?? new DateTime(1, 1, 1);
-                    }
-                    else if (ColumnType == typeof(bool))
-                    {
-                        RowToAdd[j] = ReturnedRecords[i, j] ?? false;
-                    }
-                    else
-                    {
-                        RowToAdd[j] = ReturnedRecords[i, j];
+                        rowIndex = row.Index;
+                        break;
                     }
                 }
 
-                DataGridView_Sales_Records.Rows.Add(RowToAdd);
-            }
-            
-            DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_PREV"].Index], ListSortDirection.Descending);
-            DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_LAST"].Index], ListSortDirection.Descending);
-            DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_CURR"].Index], ListSortDirection.Descending);
-            DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_NEXT"].Index], ListSortDirection.Descending);
-            DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["HexOnly"].Index], ListSortDirection.Descending);
-            DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["HexAndO65"].Index], ListSortDirection.Descending);
+                if (ReturnedRecords.GetUpperBound(0) > -1)
+                {
+                    for (int j = 0; j <= ReturnedRecords.GetUpperBound(1); j++)
+                    {
+                        dynamic ColumnType = DataGridView_Sales_Records.Columns[j].ValueType;
+                        if (ColumnType == typeof(int))
+                        {
+                            RowToAdd[j] = ReturnedRecords[0, j];
+                        }
+                        else if (ColumnType == typeof(String) || ColumnType == typeof(string))
+                        {
+                            RowToAdd[j] = ReturnedRecords[0, j] ?? "";
+                        }
+                        else if (ColumnType == typeof(DateTime))
+                        {
+                            RowToAdd[j] = ReturnedRecords[0, j] ?? new DateTime(1, 1, 1);
+                        }
+                        else if (ColumnType == typeof(bool))
+                        {
+                            RowToAdd[j] = ReturnedRecords[0, j] ?? false;
+                        }
+                        else
+                        {
+                            RowToAdd[j] = ReturnedRecords[0, j];
+                        }
+                    }
 
-            return ReturnedRecords.GetUpperBound(0) > -1;
+
+
+                    DataGridView_Sales_Records.Rows[rowIndex].SetValues(RowToAdd);
+                }
+
+                returnbool = ReturnedRecords.GetUpperBound(0) > -1;
+            }
+            return returnbool;
         }
 
 
@@ -411,237 +484,262 @@ namespace TESS_Dashboard
             CONN.Open();
             try
             {
-                SQLcommander DocumentCommand = new SQLcommander(CONN);
-
-                List<string> RequestFields = new List<string>();
-                RequestFields.Add("ADOC_PATHNAME");
-            
-                
-                DocumentCommand.TableName = "tblACCT_DOCUMENT2";
-
-                foreach (string aKey in RequestFields)
+                //refresh data for the record! MPA 1/29/2020. If the account no longer satisfies the criteria for the search, skip it.
+                if (SearchRecords(CONN, (int)DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value))
                 {
-                    DocumentCommand.AddRequest(aKey);
-                }
+                    SQLcommander DocumentCommand = new SQLcommander(CONN);
 
-                Dictionary<string, Tuple<string, object>> ConditionFields = new Dictionary<string, Tuple<string, object>>();
-                ConditionFields.Add("ADOC_ACCT = @ADOC_ACCT", new Tuple<string, object>("@ADOC_ACCT", DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value));
-                ConditionFields.Add("ADOC_TYPE LIKE 'app%'", new Tuple<string, object>(null, null));
+                    List<string> RequestFields = new List<string>();
+                    RequestFields.Add("ADOC_PATHNAME");
 
-                foreach (string aKey in ConditionFields.Keys)
-                {
-                    DocumentCommand.Conditions.Add(aKey);
+                    DocumentCommand.TableName = "tblACCT_DOCUMENT2";
 
-                    if (ConditionFields[aKey].Item1 != null)
+                    foreach (string aKey in RequestFields)
                     {
-                        DocumentCommand.Parameters.Add(ConditionFields[aKey].Item1, ConditionFields[aKey].Item2);
+                        DocumentCommand.AddRequest(aKey);
                     }
-                }
 
-                DocumentCommand.Select();
-                object[,] ReturnedRecords = DocumentCommand.SelectResults;
-                
-                if (ReturnedRecords.GetUpperBound(0) > 1)
-                {
-                    MessageBox.Show("There are more than two 'App%' documents for this account!");
-                }
+                    Dictionary<string, Tuple<string, object>> ConditionFields = new Dictionary<string, Tuple<string, object>>();
+                    ConditionFields.Add("ADOC_ACCT = @ADOC_ACCT", new Tuple<string, object>("@ADOC_ACCT", DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value));
+                    ConditionFields.Add("ADOC_TYPE LIKE 'app%'", new Tuple<string, object>(null, null));
 
-                if (ReturnedRecords.GetUpperBound(0) > 0)
-                {
-                    if (File.Exists(Convert.ToString(ReturnedRecords[0, 0])))
+                    foreach (string aKey in ConditionFields.Keys)
                     {
-                        if (!IsFileLocked(Convert.ToString(ReturnedRecords[0, 0])))
+                        DocumentCommand.Conditions.Add(aKey);
+
+                        if (ConditionFields[aKey].Item1 != null)
                         {
-                            //DisplayPDF1.src = "file:////" + Convert.ToString(ReturnedRecords[0, 0]);
-                            DisplayPDF1.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
-                            DisplayPDF1.setLayoutMode("TwoColumnLeft");
-                            DisplayPDF1.gotoFirstPage();
-                            DisplayPDF1.gotoNextPage();
+                            DocumentCommand.Parameters.Add(ConditionFields[aKey].Item1, ConditionFields[aKey].Item2);
+                        }
+                    }
+
+                    DocumentCommand.Select();
+                    object[,] ReturnedRecords = DocumentCommand.SelectResults;
+
+                    if (ReturnedRecords.GetUpperBound(0) > 1)
+                    {
+                        MessageBox.Show("There are more than two 'App%' documents for this account!");
+                    }
+
+                    if (ReturnedRecords.GetUpperBound(0) > 0)
+                    {
+                        if (File.Exists(Convert.ToString(ReturnedRecords[0, 0])))
+                        {
+                            if (!IsFileLocked(Convert.ToString(ReturnedRecords[0, 0])))
+                            {
+                                //DisplayPDF1.src = "file:////" + Convert.ToString(ReturnedRecords[0, 0]);
+                                DisplayPDF1.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
+                                DisplayPDF1.setLayoutMode("TwoColumnLeft");
+                                DisplayPDF1.gotoFirstPage();
+                                DisplayPDF1.gotoNextPage();
+
+                            }
+                            else
+                            {
+                                MessageBox.Show("File path is locked! " + ReturnedRecords[0, 0].ToString());
+                            }
 
                         }
                         else
                         {
-                            MessageBox.Show("File path is locked! " + ReturnedRecords[0, 0].ToString());
+                            MessageBox.Show("File path not found! " + ReturnedRecords[0, 0].ToString());
+                        }
+
+                        if (File.Exists(Convert.ToString(ReturnedRecords[1, 0])))
+                        {
+                            if (!IsFileLocked(Convert.ToString(ReturnedRecords[1, 0])))
+                            {
+
+                                DisplayPDF2.LoadFile(Convert.ToString(ReturnedRecords[1, 0]));
+                                DisplayPDF2.setLayoutMode("TwoColumnLeft");
+                                DisplayPDF2.gotoFirstPage();
+                                DisplayPDF2.gotoNextPage();
+                                DisplayPDF2.gotoNextPage();
+                            }
+                            else
+                            {
+                                MessageBox.Show("File path is locked! " + ReturnedRecords[1, 0].ToString());
+                            }
+
+                        }
+                        else
+                        {
+                            MessageBox.Show("File path not found! " + ReturnedRecords[1, 0].ToString());
+                        }
+                    }
+                    else if (ReturnedRecords.GetUpperBound(0) > -1)
+                    {
+
+                        if (File.Exists(Convert.ToString(ReturnedRecords[0, 0])))
+                        {
+                            if (!IsFileLocked(Convert.ToString(ReturnedRecords[0, 0])))
+                            {
+                                //DisplayPDF1.src = "file:////" + Convert.ToString(ReturnedRecords[0, 0]);
+                                DisplayPDF1.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
+                                DisplayPDF1.setLayoutMode("TwoColumnLeft");
+                                DisplayPDF1.gotoFirstPage();
+                                DisplayPDF1.gotoNextPage();
+
+                                DisplayPDF2.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
+                                DisplayPDF2.setLayoutMode("TwoColumnLeft");
+                                DisplayPDF2.gotoFirstPage();
+                                DisplayPDF2.gotoNextPage();
+                                DisplayPDF2.gotoNextPage();
+                            }
+                            else
+                            {
+                                MessageBox.Show("File path is locked! " + ReturnedRecords[0, 0].ToString());
+                            }
+
+                        }
+                        else
+                        {
+                            MessageBox.Show("File path not found! " + ReturnedRecords[0, 0].ToString());
                         }
 
                     }
                     else
                     {
-                        MessageBox.Show("File path not found! " + ReturnedRecords[0, 0].ToString());
+                        DisplayPDF1.LoadFile("sdkjffdjsk");
+                        DisplayPDF2.LoadFile("sdlkjfdsjkl");
+                        MessageBox.Show("No 'App%' documents were found for this account!");
                     }
 
-                    if (File.Exists(Convert.ToString(ReturnedRecords[1, 0])))
+                    //DisplayPDF3.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
+                    //DisplayPDF3.gotoFirstPage();
+                    //DisplayPDF3.gotoNextPage();
+                    //DisplayPDF3.gotoNextPage();
+                    //DisplayPDF4.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
+                    //DisplayPDF4.gotoFirstPage();
+                    //DisplayPDF4.gotoNextPage();
+                    //DisplayPDF4.gotoNextPage();
+                    //DisplayPDF4.gotoNextPage();
+
+                    //The If Null (??) Statements are probably needless considering nulls are already guarded against from being in the grid in the first place
+
+
+                    lbl_ACCT.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value ?? "");
+                    CheckBox_ACCT_CANCEL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CANCEL"].Index].Value ?? false);
+
+                    CheckBox_ACCT_EX_DP_GOAL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_EX_DP_GOAL"].Index].Value ?? false);
+                    CheckBox_ACCT_EX_HEX_GOAL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_EX_HEX_GOAL"].Index].Value ?? false);
+                    CheckBox_ACCT_EX_O65_GOAL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_EX_O65_GOAL"].Index].Value ?? false);
+
+                    CheckBox_ACLT_OWNER1_SIGNED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_OWNER1_SIGNED"].Index].Value ?? false);
+                    CheckBox_ACLT_OWNER2_SIGNED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_OWNER2_SIGNED"].Index].Value ?? false);
+
+                    CheckBox_ACLT_EX_DP_APPLIED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_EX_DP_APPLIED"].Index].Value ?? false);
+                    CheckBox_ACLT_EX_HEX_APPLIED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_EX_HEX_APPLIED"].Index].Value ?? false);
+                    CheckBox_ACLT_EX_O65_APPLIED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_EX_O65_APPLIED"].Index].Value ?? false);
+
+                    lbl_ACCT_ALIAS.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_ALIAS"].Index].Value ?? "");
+
+                    string strGoal = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_EX_GOAL_PCT"].Index].Value);
+                    strGoal = strGoal.Length > 0 ? string.Format("{0:#.00}", Convert.ToDecimal(strGoal) * 100) : "";
+                    strGoal = strGoal.PadRight(strGoal.Length + 1, '&').Contains(".00&") ? strGoal.Replace(".00", "") : strGoal;
+                    lbl_ACCT_EX_GOAL_PCT.Text = strGoal.Length > 0 ? strGoal + " %" : "";
+
+                    string strRefund = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_REFUND"].Index].Value);
+                    lbl_ACCT_REFUND.Text = strRefund.Length > 0 ? string.Format("{0:#.00}", Convert.ToDecimal(strRefund)) : "";
+
+                    lbl_ACCT_TAX_YEAR.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value ?? "");
+
+                    string strDOB1 = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).ToShortDateString();
+                    lbl_ACLT_DOB1.Text = strDOB1 == "1/1/0001" ? "" : strDOB1;
+                    lbl_lbl_DOB1.Visible = !(strDOB1 == "1/1/0001");
+                    string strDOB2 = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).ToShortDateString();
+                    lbl_ACLT_DOB2.Text = strDOB2 == "1/1/0001" ? "" : strDOB2;
+                    lbl_lbl_DOB2.Visible = !(strDOB2 == "1/1/0001");
+
+                    string strFee = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FEE_PCT"].Index].Value);
+                    strFee = strFee.Length > 0 ? string.Format("{0:#.00}", Convert.ToDecimal(strFee) * 100) : "";
+                    strFee = strFee.PadRight(strFee.Length + 1, '&').Contains(".00&") ? strFee.Replace(".00", "") : strFee;
+                    lbl_ACLT_FEE_PCT.Text = strFee.Length > 0 ? strFee : "";
+
+                    string strSigned = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_SIGNED"].Index].Value)).ToShortDateString();
+                    lbl_ACLT_SIGNED.Text = strSigned == "1/1/0001" ? "" : strSigned;
+
+                    lbl_ACLT_STATUS.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_STATUS"].Index].Value ?? "");
+                    lbl_ACLT_MISC_NOTES.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_MISC_NOTES"].Index].Value ?? "");
+
+                    lbl_FullName1.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_TITLE"].Index].Value ?? "")
+                        + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_FIRST"].Index].Value ?? "")
+                        + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_MIDDLE"].Index].Value ?? "")
+                        + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_LAST"].Index].Value ?? "")
+                        + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_SUFFIX"].Index].Value ?? "");
+
+                    lbl_FullName2.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_TITLE"].Index].Value ?? "")
+                        + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_FIRST"].Index].Value ?? "")
+                        + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_MIDDLE"].Index].Value ?? "")
+                        + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_LAST"].Index].Value ?? "")
+                        + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_SUFFIX"].Index].Value ?? "");
+
+                    lbl_ASLS_SALESMAN.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ASLS_SALESMAN"].Index].Value ?? "");
+                    lbl_ASLS_STATUS.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ASLS_STATUS"].Index].Value ?? "");
+
+                    /* MPA 1/29/2020 if we end up deleting non eligible records, remove this! -- Removed, but keeping the code in case we change our minds
+                    if (CheckBox_ASLS_STATUS.Checked || (!CheckBox_ASLS_STATUS.Checked && !CheckBox_ASLS_STATUS_TESS.Checked && ((System.Data.DataRowView)ComboBox_ASLS_STATUS.SelectedValue).Row.ItemArray[0].ToString().Replace(" ", "") == ""))
                     {
-                        if (!IsFileLocked(Convert.ToString(ReturnedRecords[1, 0])))
-                        {
-
-                            DisplayPDF2.LoadFile(Convert.ToString(ReturnedRecords[1, 0]));
-                            DisplayPDF2.setLayoutMode("TwoColumnLeft");
-                            DisplayPDF2.gotoFirstPage();
-                            DisplayPDF2.gotoNextPage();
-                            DisplayPDF2.gotoNextPage();
-                        }
-                        else
-                        {
-                            MessageBox.Show("File path is locked! " + ReturnedRecords[1, 0].ToString());
-                        }
-
+                        lbl_ASLS_STATUS.BackColor = lbl_ASLS_STATUS.Text.ToUpper().Contains("LEAD COMPLETED") ? DefaultBackColor : Color.Yellow;
                     }
-                    else
+                    else if (CheckBox_ASLS_STATUS_TESS.Checked)
                     {
-                        MessageBox.Show("File path not found! " + ReturnedRecords[1, 0].ToString());
+                        lbl_ASLS_STATUS.BackColor = lbl_ASLS_STATUS.Text == "Rep Claims Complete - TESS" ? DefaultBackColor : Color.Yellow;
                     }
-                }
-                else if (ReturnedRecords.GetUpperBound(0) > -1)
-                {
-
-                    if (File.Exists(Convert.ToString(ReturnedRecords[0, 0])))
+                    else if (!(((System.Data.DataRowView)ComboBox_ASLS_STATUS.SelectedValue).Row.ItemArray[0].ToString() == "All"))
                     {
-                        if (!IsFileLocked(Convert.ToString(ReturnedRecords[0, 0])))
-                        {
-                            //DisplayPDF1.src = "file:////" + Convert.ToString(ReturnedRecords[0, 0]);
-                            DisplayPDF1.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
-                            DisplayPDF1.setLayoutMode("TwoColumnLeft");
-                            DisplayPDF1.gotoFirstPage();
-                            DisplayPDF1.gotoNextPage();
-
-                            DisplayPDF2.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
-                            DisplayPDF2.setLayoutMode("TwoColumnLeft");
-                            DisplayPDF2.gotoFirstPage();
-                            DisplayPDF2.gotoNextPage();
-                            DisplayPDF2.gotoNextPage();
-                        }
-                        else
-                        {
-                            MessageBox.Show("File path is locked! " + ReturnedRecords[0, 0].ToString());
-                        }
-
+                        lbl_ASLS_STATUS.BackColor = lbl_ASLS_STATUS.Text == ((System.Data.DataRowView)ComboBox_ASLS_STATUS.SelectedValue).Row.ItemArray[0].ToString() ? DefaultBackColor : Color.Yellow;
                     }
-                    else
-                    {
-                        MessageBox.Show("File path not found! " + ReturnedRecords[0, 0].ToString());
-                    }
-                    
+                    */
+
+                    lbl_PRCL_PID.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_PID"].Index].Value ?? "");
+                    lbl_PRCL_SITUS_ADDR.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_SITUS_ADDR"].Index].Value ?? "");
+                    lbl_PRCL_SITUS_CITY.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_SITUS_CITY"].Index].Value ?? "");
+                    lbl_PRCL_SITUS_STATE.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_SITUS_STATE"].Index].Value ?? "");
+                    lbl_PRCL_SITUS_ZIP.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_SITUS_ZIP"].Index].Value ?? "");
+
+                    string strDeed = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).ToShortDateString();
+                    lbl_POWN_DEED_DATE.Text = strDeed == "1/1/0001" ? "" : strDeed;
+                    lbl_POWN_MAIL_ADDR1.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_ADDR1"].Index].Value ?? "");
+                    lbl_POWN_MAIL_ADDR2.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_ADDR2"].Index].Value ?? "");
+                    lbl_POWN_MAIL_CITY.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_CITY"].Index].Value ?? "");
+                    lbl_POWN_MAIL_STATE.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_STATE"].Index].Value ?? "");
+                    lbl_POWN_MAIL_ZIP.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_ZIP"].Index].Value ?? "");
+                    lbl_POWN_OWNER_NAME1.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_OWNER_NAME1"].Index].Value ?? "");
+                    lbl_POWN_OWNER_NAME2.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_OWNER_NAME2"].Index].Value ?? "");
+
+                    CheckBox_ACLT_FILE_CURR.Text = Convert.ToString(Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) - 0);
+                    CheckBox_ACLT_FILE_LAST.Text = Convert.ToString(Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) - 1);
+                    CheckBox_ACLT_FILE_NEXT.Text = Convert.ToString(Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) + 1);
+                    CheckBox_ACLT_FILE_PREV.Text = Convert.ToString(Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) - 2);
+
+                    CheckBox_ACLT_FILE_CURR.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_CURR"].Index].Value ?? false);
+                    CheckBox_ACLT_FILE_LAST.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_LAST"].Index].Value ?? false);
+                    CheckBox_ACLT_FILE_NEXT.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_NEXT"].Index].Value ?? false);
+                    CheckBox_ACLT_FILE_PREV.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_PREV"].Index].Value ?? false);
+
+                    //Conditionals
+
+                    CheckBox_ACLT_FILE_PREV.BackColor = (!CheckBox_ACLT_FILE_PREV.Checked && (
+                        ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year < 2017
+                        || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= 1953
+                        || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= 1953)
+                        ) ? Color.Yellow : CheckBox_ACLT_FILE_PREV.BackColor = DefaultBackColor;
+                    CheckBox_ACCT_CANCEL.BackColor = CheckBox_ACCT_CANCEL.Checked ? Color.Yellow : DefaultBackColor;
+                    //CheckBox_ACLT_EX_O65_APPLIED.BackColor = CheckBox_ACLT_EX_O65_APPLIED.Checked ? Color.Yellow : DefaultBackColor;
+                    lbl_POWN_DEED_DATE.BackColor = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year >= 2018 && (
+                        ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= 1953
+                        || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= 1953
+                        ) ? Color.Yellow : DefaultBackColor;
+
+                    lbl_ACLT_STATUS.BackColor = lbl_ACLT_STATUS.Text.Length > 0 ? Color.Yellow : DefaultBackColor;
                 }
                 else
                 {
-                    DisplayPDF1.LoadFile("sdkjffdjsk");
-                    DisplayPDF2.LoadFile("sdlkjfdsjkl");
-                    MessageBox.Show("No 'App%' documents were found for this account!");
+                    Button_Skip_Click(null, null);
+                    LoadRecord();
                 }
-                
-                //DisplayPDF3.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
-                //DisplayPDF3.gotoFirstPage();
-                //DisplayPDF3.gotoNextPage();
-                //DisplayPDF3.gotoNextPage();
-                //DisplayPDF4.LoadFile(Convert.ToString(ReturnedRecords[0, 0]));
-                //DisplayPDF4.gotoFirstPage();
-                //DisplayPDF4.gotoNextPage();
-                //DisplayPDF4.gotoNextPage();
-                //DisplayPDF4.gotoNextPage();
 
-                //The If Null (??) Statements are probably needless considering nulls are already guarded against from being in the grid in the first place
-
-                lbl_ACCT.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value ?? "");
-                CheckBox_ACCT_CANCEL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CANCEL"].Index].Value ?? false);
-
-                CheckBox_ACCT_EX_DP_GOAL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_EX_DP_GOAL"].Index].Value ?? false);
-                CheckBox_ACCT_EX_HEX_GOAL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_EX_HEX_GOAL"].Index].Value ?? false);
-                CheckBox_ACCT_EX_O65_GOAL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_EX_O65_GOAL"].Index].Value ?? false);
-                
-                CheckBox_ACLT_OWNER1_SIGNED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_OWNER1_SIGNED"].Index].Value ?? false);
-                CheckBox_ACLT_OWNER2_SIGNED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_OWNER2_SIGNED"].Index].Value ?? false);
-
-                CheckBox_ACLT_EX_DP_APPLIED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_EX_DP_APPLIED"].Index].Value ?? false);
-                CheckBox_ACLT_EX_HEX_APPLIED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_EX_HEX_APPLIED"].Index].Value ?? false);
-                CheckBox_ACLT_EX_O65_APPLIED.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_EX_O65_APPLIED"].Index].Value ?? false);
-                
-                lbl_ACCT_ALIAS.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_ALIAS"].Index].Value ?? "");
-
-                string strGoal = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_EX_GOAL_PCT"].Index].Value);
-                strGoal = strGoal.Length > 0 ? string.Format("{0:#.00}", Convert.ToDecimal(strGoal) * 100) : "";
-                strGoal = strGoal.PadRight(strGoal.Length + 1, '&').Contains(".00&") ? strGoal.Replace(".00", "") : strGoal;
-                lbl_ACCT_EX_GOAL_PCT.Text = strGoal.Length > 0 ? strGoal + " %" : "";
-
-                string strRefund = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_REFUND"].Index].Value);
-                lbl_ACCT_REFUND.Text = strRefund.Length > 0 ? string.Format("{0:#.00}", Convert.ToDecimal(strRefund)) : "";
-
-                lbl_ACCT_TAX_YEAR.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value ?? "");
-
-                string strDOB1 = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).ToShortDateString();
-                lbl_ACLT_DOB1.Text = strDOB1 == "1/1/0001" ? "" : strDOB1;
-                lbl_lbl_DOB1.Visible = !(strDOB1 == "1/1/0001");
-                string strDOB2 = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).ToShortDateString();
-                lbl_ACLT_DOB2.Text = strDOB2 == "1/1/0001" ? "" : strDOB2;
-                lbl_lbl_DOB2.Visible = !(strDOB2 == "1/1/0001");
-
-                string strFee = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FEE_PCT"].Index].Value);
-                strFee = strFee.Length > 0 ? string.Format("{0:#.00}", Convert.ToDecimal(strFee) * 100) : "";
-                strFee = strFee.PadRight(strFee.Length + 1, '&').Contains(".00&") ? strFee.Replace(".00", "") : strFee;
-                lbl_ACLT_FEE_PCT.Text = strFee.Length > 0 ? strFee : "";
-
-                string strSigned = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_SIGNED"].Index].Value)).ToShortDateString();
-                lbl_ACLT_SIGNED.Text = strSigned == "1/1/0001" ? "" : strSigned;
-
-                lbl_ACLT_STATUS.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_STATUS"].Index].Value ?? "");
-                lbl_ACLT_MISC_NOTES.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_MISC_NOTES"].Index].Value ?? "");
-
-                lbl_FullName1.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_TITLE"].Index].Value ?? "")
-                    + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_FIRST"].Index].Value ?? "")
-                    + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_MIDDLE"].Index].Value ?? "")
-                    + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_LAST"].Index].Value ?? "")
-                    + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME1_SUFFIX"].Index].Value ?? "");
-
-                lbl_FullName2.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_TITLE"].Index].Value ?? "")
-                    + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_FIRST"].Index].Value ?? "")
-                    + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_MIDDLE"].Index].Value ?? "")
-                    + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_LAST"].Index].Value ?? "")
-                    + " " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CONTACT_NAME2_SUFFIX"].Index].Value ?? "");
-                
-                lbl_ASLS_SALESMAN.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ASLS_SALESMAN"].Index].Value ?? "");
-                lbl_ASLS_STATUS.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ASLS_STATUS"].Index].Value ?? "");
-
-                lbl_PRCL_PID.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_PID"].Index].Value ?? "");
-                lbl_PRCL_SITUS_ADDR.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_SITUS_ADDR"].Index].Value ?? "");
-                lbl_PRCL_SITUS_CITY.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_SITUS_CITY"].Index].Value ?? "");
-                lbl_PRCL_SITUS_STATE.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_SITUS_STATE"].Index].Value ?? "");
-                lbl_PRCL_SITUS_ZIP.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["PRCL_SITUS_ZIP"].Index].Value ?? "");
-
-                string strDeed = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).ToShortDateString();
-                lbl_POWN_DEED_DATE.Text = strDeed == "1/1/0001" ? "" : strDeed;
-                lbl_POWN_MAIL_ADDR1.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_ADDR1"].Index].Value ?? "");
-                lbl_POWN_MAIL_ADDR2.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_ADDR2"].Index].Value ?? "");
-                lbl_POWN_MAIL_CITY.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_CITY"].Index].Value ?? "");
-                lbl_POWN_MAIL_STATE.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_STATE"].Index].Value ?? "");
-                lbl_POWN_MAIL_ZIP.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_MAIL_ZIP"].Index].Value ?? "");
-                lbl_POWN_OWNER_NAME1.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_OWNER_NAME1"].Index].Value ?? "");
-                lbl_POWN_OWNER_NAME2.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_OWNER_NAME2"].Index].Value ?? "");
-
-                CheckBox_ACLT_FILE_CURR.Text = Convert.ToString(Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) - 0);
-                CheckBox_ACLT_FILE_LAST.Text = Convert.ToString(Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) - 1);
-                CheckBox_ACLT_FILE_NEXT.Text = Convert.ToString(Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) + 1);
-                CheckBox_ACLT_FILE_PREV.Text = Convert.ToString(Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) - 2);
-
-                CheckBox_ACLT_FILE_CURR.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_CURR"].Index].Value ?? false);
-                CheckBox_ACLT_FILE_LAST.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_LAST"].Index].Value ?? false);
-                CheckBox_ACLT_FILE_NEXT.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_NEXT"].Index].Value ?? false);
-                CheckBox_ACLT_FILE_PREV.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_PREV"].Index].Value ?? false);
-
-                //Conditionals
-                
-                CheckBox_ACLT_FILE_PREV.BackColor = (!CheckBox_ACLT_FILE_PREV.Checked && (
-                    ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year < 2017
-                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= 1953
-                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= 1953)
-                    ) ? Color.Yellow : CheckBox_ACLT_FILE_PREV.BackColor = DefaultBackColor;
-                CheckBox_ACCT_CANCEL.BackColor = CheckBox_ACCT_CANCEL.Checked ? Color.Yellow : DefaultBackColor;
-                //CheckBox_ACLT_EX_O65_APPLIED.BackColor = CheckBox_ACLT_EX_O65_APPLIED.Checked ? Color.Yellow : DefaultBackColor;
-                lbl_POWN_DEED_DATE.BackColor = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year >= 2018 && (
-                    ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= 1953
-                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= 1953
-                    ) ? Color.Yellow : DefaultBackColor;
-
-                lbl_ACLT_STATUS.BackColor = lbl_ACLT_STATUS.Text.Length > 0 ? Color.Yellow : DefaultBackColor;
 
             }
             catch (Exception Ex)
