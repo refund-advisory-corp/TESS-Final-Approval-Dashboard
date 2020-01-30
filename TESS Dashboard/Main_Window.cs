@@ -498,6 +498,7 @@ namespace TESS_Dashboard
                 else if (GoingForward)
                 {
                     Button_Skip_Click(null, null);
+                    return;
                 }
 
                 SQLcommander DocumentCommand = new SQLcommander(CONN);
