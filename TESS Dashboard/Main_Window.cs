@@ -460,8 +460,8 @@ namespace TESS_Dashboard
                 {
                     if (MessageBox.Show("This was the last record! Are you done?", "Last Record", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
-                        SearchRecords(CONN);
                         OnRecord = 0;
+                        SearchRecords(CONN);
                         LoadRecord();
                     }
                 }
@@ -898,8 +898,8 @@ namespace TESS_Dashboard
                     {
                         if (MessageBox.Show("This was the last record! Go back to the start?", "Last Record", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                         {
-                            SearchRecords(CONN);
                             OnRecord = 0;
+                            SearchRecords(CONN);
                             LoadRecord();
                         }
                     }
