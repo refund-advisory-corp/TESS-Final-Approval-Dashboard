@@ -450,23 +450,7 @@ namespace TESS_Dashboard
                 {
                     MessageBox.Show("Unexpected contingency: Accept_Click! ASLS_STATUS not accounted for.");
                 }
-
-                if (OnRecord < DataGridView_Sales_Records.Rows.Count - 2) //Accounts for the null row
-                {
-                    OnRecord++;
-                    LoadRecord();
-                }
-                else
-                {
-                    if (MessageBox.Show("This was the last record! Are you done?", "Last Record", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                    {
-                        OnRecord = 0;
-                        SearchRecords(CONN);
-                        LoadRecord();
-                    }
-                }
-
-
+                
             }
             catch (Exception Ex)
             {
@@ -477,10 +461,21 @@ namespace TESS_Dashboard
                 CONN.Close();
             }
 
-            
+            if (OnRecord < DataGridView_Sales_Records.Rows.Count - 2) //Accounts for the null row
+            {
+                OnRecord++;
+                LoadRecord();
+            }
+            else
+            {
+                if (MessageBox.Show("This was the last record! Are you done?", "Last Record", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    Search();
+                }
+            }
 
 
-            
+
         }
 
         public void LoadRecord(bool GoingForward = true)
@@ -784,6 +779,8 @@ namespace TESS_Dashboard
             return false;
         }
 
+        //public void ClearRecord() {}
+
         private void DisplayPDF2_Enter(object sender, EventArgs e)
         {
 
@@ -886,20 +883,7 @@ namespace TESS_Dashboard
 
                     InsertCallRecord(CONN, Convert.ToInt32(Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value)), "TESS forms in pending");
 
-                    if (OnRecord < DataGridView_Sales_Records.Rows.Count - 2) //Accounts for the null row
-                    {
-                        OnRecord++;
-                        LoadRecord();
-                    }
-                    else
-                    {
-                        if (MessageBox.Show("This was the last record! Go back to the start?", "Last Record", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                        {
-                            OnRecord = 0;
-                            SearchRecords(CONN);
-                            LoadRecord();
-                        }
-                    }
+
                 }
                 catch (Exception Ex)
                 {
@@ -910,11 +894,23 @@ namespace TESS_Dashboard
                     CONN.Close();
                 }
 
+                if (OnRecord < DataGridView_Sales_Records.Rows.Count - 2) //Accounts for the null row
+                {
+                    OnRecord++;
+                    LoadRecord();
+                }
+                else
+                {
+                    if (MessageBox.Show("This was the last record! Go back to the start?", "Last Record", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        Search();
+                    }
+                }
+
                 Button_Needs_Review.Text = "Needs Review";
                 ComboBox_NeedsReview.SelectedIndex = 0;
                 ComboBox_NeedsReview.Visible = false;
                 
-
             }
             else
             {
@@ -956,11 +952,7 @@ namespace TESS_Dashboard
 
         private void Button_Skip_Click(object sender, EventArgs e)
         {
-            
-
-            SqlConnection CONN = new SqlConnection(ConfigurationManager.ConnectionStrings["TESS Dashboard.Properties.Settings.REFTBL4ConnectionString"].ConnectionString);
-            CONN.Open();
-
+          
             try
             {
                 if (OnRecord < DataGridView_Sales_Records.Rows.Count - 2) //Accounts for the null row
@@ -972,9 +964,7 @@ namespace TESS_Dashboard
                 {
                     if (MessageBox.Show("This was the last record! Are you done?", "Last Record", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
-                        OnRecord = 0;
-                        SearchRecords(CONN);
-                        LoadRecord();
+                        Search();
                     }
                 }
             }
@@ -982,11 +972,6 @@ namespace TESS_Dashboard
             {
                 MessageBox.Show("Error in SkipClick: " + Ex.Message + " ... " + Ex.StackTrace);
             }
-            finally
-            {
-                CONN.Close();
-            }
-
         }
 
         private void lbl_PRCL_SITUS_ZIP_Click(object sender, EventArgs e)
