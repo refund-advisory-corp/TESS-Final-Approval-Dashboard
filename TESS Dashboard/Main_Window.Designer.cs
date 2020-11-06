@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main_Window));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.CheckBox_ReverseSort = new System.Windows.Forms.CheckBox();
             this.CheckBox_ASLS_STATUS_TESS = new System.Windows.Forms.CheckBox();
             this.CheckBox_ASLS_STATUS = new System.Windows.Forms.CheckBox();
             this.ComboBox_ASLS_STATUS = new System.Windows.Forms.ComboBox();
@@ -108,7 +109,8 @@
             this.Button_PDF1_Open = new System.Windows.Forms.Button();
             this.Button_PDF2_Open = new System.Windows.Forms.Button();
             this.lbl_ACLT_MISC_NOTES = new GrowLabel();
-            this.CheckBox_ReverseSort = new System.Windows.Forms.CheckBox();
+            this.CheckBox_ACCT_CALC_PREV = new System.Windows.Forms.CheckBox();
+            this.CheckBox_ACCT_CALC_PREV_SHOW = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView_Sales_Records)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DisplayPDF1)).BeginInit();
@@ -119,6 +121,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.CheckBox_ACCT_CALC_PREV);
             this.groupBox1.Controls.Add(this.CheckBox_ReverseSort);
             this.groupBox1.Controls.Add(this.CheckBox_ASLS_STATUS_TESS);
             this.groupBox1.Controls.Add(this.CheckBox_ASLS_STATUS);
@@ -139,6 +142,18 @@
             this.groupBox1.TabIndex = 18;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Search";
+            // 
+            // CheckBox_ReverseSort
+            // 
+            this.CheckBox_ReverseSort.AutoSize = true;
+            this.CheckBox_ReverseSort.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.CheckBox_ReverseSort.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CheckBox_ReverseSort.Location = new System.Drawing.Point(245, 165);
+            this.CheckBox_ReverseSort.Name = "CheckBox_ReverseSort";
+            this.CheckBox_ReverseSort.Size = new System.Drawing.Size(109, 23);
+            this.CheckBox_ReverseSort.TabIndex = 98;
+            this.CheckBox_ReverseSort.Text = "Reverse Sort";
+            this.CheckBox_ReverseSort.UseVisualStyleBackColor = true;
             // 
             // CheckBox_ASLS_STATUS_TESS
             // 
@@ -997,23 +1012,37 @@
             this.lbl_ACLT_MISC_NOTES.TabIndex = 97;
             this.lbl_ACLT_MISC_NOTES.Text = "ACLT_MISC_NOTES";
             // 
-            // CheckBox_ReverseSort
+            // CheckBox_ACCT_CALC_PREV
             // 
-            this.CheckBox_ReverseSort.AutoSize = true;
-            this.CheckBox_ReverseSort.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.CheckBox_ReverseSort.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CheckBox_ReverseSort.Location = new System.Drawing.Point(245, 165);
-            this.CheckBox_ReverseSort.Name = "CheckBox_ReverseSort";
-            this.CheckBox_ReverseSort.Size = new System.Drawing.Size(109, 23);
-            this.CheckBox_ReverseSort.TabIndex = 98;
-            this.CheckBox_ReverseSort.Text = "Reverse Sort";
-            this.CheckBox_ReverseSort.UseVisualStyleBackColor = true;
+            this.CheckBox_ACCT_CALC_PREV.AutoSize = true;
+            this.CheckBox_ACCT_CALC_PREV.Checked = true;
+            this.CheckBox_ACCT_CALC_PREV.CheckState = System.Windows.Forms.CheckState.Indeterminate;
+            this.CheckBox_ACCT_CALC_PREV.Location = new System.Drawing.Point(132, 58);
+            this.CheckBox_ACCT_CALC_PREV.Name = "CheckBox_ACCT_CALC_PREV";
+            this.CheckBox_ACCT_CALC_PREV.Size = new System.Drawing.Size(56, 23);
+            this.CheckBox_ACCT_CALC_PREV.TabIndex = 99;
+            this.CheckBox_ACCT_CALC_PREV.Text = "Prev";
+            this.CheckBox_ACCT_CALC_PREV.ThreeState = true;
+            this.CheckBox_ACCT_CALC_PREV.UseVisualStyleBackColor = true;
+            this.CheckBox_ACCT_CALC_PREV.CheckedChanged += new System.EventHandler(this.CheckBox_ACCT_CALC_PREV_CheckedChanged);
+            // 
+            // CheckBox_ACCT_CALC_PREV_SHOW
+            // 
+            this.CheckBox_ACCT_CALC_PREV_SHOW.AutoSize = true;
+            this.CheckBox_ACCT_CALC_PREV_SHOW.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CheckBox_ACCT_CALC_PREV_SHOW.Location = new System.Drawing.Point(112, 525);
+            this.CheckBox_ACCT_CALC_PREV_SHOW.Name = "CheckBox_ACCT_CALC_PREV_SHOW";
+            this.CheckBox_ACCT_CALC_PREV_SHOW.Size = new System.Drawing.Size(56, 23);
+            this.CheckBox_ACCT_CALC_PREV_SHOW.TabIndex = 98;
+            this.CheckBox_ACCT_CALC_PREV_SHOW.Text = "Prev";
+            this.CheckBox_ACCT_CALC_PREV_SHOW.UseVisualStyleBackColor = true;
             // 
             // Main_Window
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(3054, 971);
+            this.Controls.Add(this.CheckBox_ACCT_CALC_PREV_SHOW);
             this.Controls.Add(this.lbl_ACLT_MISC_NOTES);
             this.Controls.Add(this.Button_PDF2_Open);
             this.Controls.Add(this.Button_PDF1_Open);
@@ -1168,5 +1197,7 @@
         private System.Windows.Forms.Button Button_PDF2_Open;
         private GrowLabel lbl_ACLT_MISC_NOTES;
         private System.Windows.Forms.CheckBox CheckBox_ReverseSort;
+        private System.Windows.Forms.CheckBox CheckBox_ACCT_CALC_PREV;
+        private System.Windows.Forms.CheckBox CheckBox_ACCT_CALC_PREV_SHOW;
     }
 }

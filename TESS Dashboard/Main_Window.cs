@@ -118,6 +118,9 @@ namespace TESS_Dashboard
             RequestFields.Add("ACCT_REFUND", typeof(decimal));
             RequestFields.Add("ACCT_CANCEL", typeof(bool));
 
+            //MPA 11/6/2020
+            RequestFields.Add("ACCT_CALC_PREV", typeof(bool));
+
             RequestFields.Add("ACCT_CONTACT_NAME1_TITLE", typeof(string));
             RequestFields.Add("ACCT_CONTACT_NAME1_FIRST", typeof(string));
             RequestFields.Add("ACCT_CONTACT_NAME1_MIDDLE", typeof(string));
@@ -205,7 +208,13 @@ namespace TESS_Dashboard
             {
                 ConditionFields.Add("ASLS_STATUS = '" + ((System.Data.DataRowView)ComboBox_ASLS_STATUS.SelectedValue).Row.ItemArray[0].ToString() + "'", new Tuple<string, object>(null, null));
             }
-            
+
+            //MPA 11/6/2020 adding ACCT_CALC_PREV
+            bool ACCT_CALC_PREV_Condition = !(CheckBox_ACCT_CALC_PREV.CheckState == CheckState.Indeterminate);
+            if (ACCT_CALC_PREV_Condition)
+            {
+                ConditionFields.Add("ACCT_CALC_PREV = @ACCT_CALC_PREV", new Tuple<string, object>("@ACCT_CALC_PREV", CheckBox_ACCT_CALC_PREV.Checked));
+            }
 
             if (DateTimePicker_App_Recv_From.Checked)
             {
@@ -291,6 +300,13 @@ namespace TESS_Dashboard
                 DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_CURR"].Index], TheDirection);
                 DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACLT_FILE_NEXT"].Index], TheDirection);
                 DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["HexOnly"].Index], TheDirection);
+
+                //MPA 11/6/2020
+                if (ACCT_CALC_PREV_Condition) //this if statement might be unnecessary!
+                {
+                    DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["ACCT_CALC_PREV"].Index], TheDirection);
+                }
+
                 DataGridView_Sales_Records.Sort(DataGridView_Sales_Records.Columns[DataGridView_Sales_Records.Columns["HexAndO65"].Index], TheDirection);
 
                 returnbool = ReturnedRecords.GetUpperBound(0) > -1;
@@ -727,6 +743,17 @@ namespace TESS_Dashboard
                 CheckBox_ACLT_FILE_NEXT.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_NEXT"].Index].Value ?? false);
                 CheckBox_ACLT_FILE_PREV.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_PREV"].Index].Value ?? false);
 
+                //MPA 11/6/2020
+                //try block as a SUPER messy way to deal with uncertainty of whether ACCT_CALC_PREV was included
+                try
+                {
+                    CheckBox_ACCT_CALC_PREV_SHOW.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CALC_PREV"].Index].Value ?? false);
+                }
+                catch
+                {
+
+                }
+ 
                 //Conditionals
 
                 CheckBox_ACLT_FILE_PREV.BackColor = (!CheckBox_ACLT_FILE_PREV.Checked && (
@@ -1104,6 +1131,11 @@ namespace TESS_Dashboard
         }
 
         private void lbl_ASLS_STATUS_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void CheckBox_ACCT_CALC_PREV_CheckedChanged(object sender, EventArgs e)
         {
 
         }
