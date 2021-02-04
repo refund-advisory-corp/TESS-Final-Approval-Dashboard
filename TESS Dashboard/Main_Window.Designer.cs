@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main_Window));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.CheckBox_ACCT_CALC_PREV = new System.Windows.Forms.CheckBox();
             this.CheckBox_ReverseSort = new System.Windows.Forms.CheckBox();
             this.CheckBox_ASLS_STATUS_TESS = new System.Windows.Forms.CheckBox();
             this.CheckBox_ASLS_STATUS = new System.Windows.Forms.CheckBox();
@@ -109,8 +110,8 @@
             this.Button_PDF1_Open = new System.Windows.Forms.Button();
             this.Button_PDF2_Open = new System.Windows.Forms.Button();
             this.lbl_ACLT_MISC_NOTES = new GrowLabel();
-            this.CheckBox_ACCT_CALC_PREV = new System.Windows.Forms.CheckBox();
             this.CheckBox_ACCT_CALC_PREV_SHOW = new System.Windows.Forms.CheckBox();
+            this.CheckBox_ACCT_COMM_SPANISH = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView_Sales_Records)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DisplayPDF1)).BeginInit();
@@ -142,6 +143,20 @@
             this.groupBox1.TabIndex = 18;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Search";
+            // 
+            // CheckBox_ACCT_CALC_PREV
+            // 
+            this.CheckBox_ACCT_CALC_PREV.AutoSize = true;
+            this.CheckBox_ACCT_CALC_PREV.Checked = true;
+            this.CheckBox_ACCT_CALC_PREV.CheckState = System.Windows.Forms.CheckState.Indeterminate;
+            this.CheckBox_ACCT_CALC_PREV.Location = new System.Drawing.Point(132, 58);
+            this.CheckBox_ACCT_CALC_PREV.Name = "CheckBox_ACCT_CALC_PREV";
+            this.CheckBox_ACCT_CALC_PREV.Size = new System.Drawing.Size(56, 23);
+            this.CheckBox_ACCT_CALC_PREV.TabIndex = 99;
+            this.CheckBox_ACCT_CALC_PREV.Text = "Prev";
+            this.CheckBox_ACCT_CALC_PREV.ThreeState = true;
+            this.CheckBox_ACCT_CALC_PREV.UseVisualStyleBackColor = true;
+            this.CheckBox_ACCT_CALC_PREV.CheckedChanged += new System.EventHandler(this.CheckBox_ACCT_CALC_PREV_CheckedChanged);
             // 
             // CheckBox_ReverseSort
             // 
@@ -1012,20 +1027,6 @@
             this.lbl_ACLT_MISC_NOTES.TabIndex = 97;
             this.lbl_ACLT_MISC_NOTES.Text = "ACLT_MISC_NOTES";
             // 
-            // CheckBox_ACCT_CALC_PREV
-            // 
-            this.CheckBox_ACCT_CALC_PREV.AutoSize = true;
-            this.CheckBox_ACCT_CALC_PREV.Checked = true;
-            this.CheckBox_ACCT_CALC_PREV.CheckState = System.Windows.Forms.CheckState.Indeterminate;
-            this.CheckBox_ACCT_CALC_PREV.Location = new System.Drawing.Point(132, 58);
-            this.CheckBox_ACCT_CALC_PREV.Name = "CheckBox_ACCT_CALC_PREV";
-            this.CheckBox_ACCT_CALC_PREV.Size = new System.Drawing.Size(56, 23);
-            this.CheckBox_ACCT_CALC_PREV.TabIndex = 99;
-            this.CheckBox_ACCT_CALC_PREV.Text = "Prev";
-            this.CheckBox_ACCT_CALC_PREV.ThreeState = true;
-            this.CheckBox_ACCT_CALC_PREV.UseVisualStyleBackColor = true;
-            this.CheckBox_ACCT_CALC_PREV.CheckedChanged += new System.EventHandler(this.CheckBox_ACCT_CALC_PREV_CheckedChanged);
-            // 
             // CheckBox_ACCT_CALC_PREV_SHOW
             // 
             this.CheckBox_ACCT_CALC_PREV_SHOW.AutoSize = true;
@@ -1037,11 +1038,23 @@
             this.CheckBox_ACCT_CALC_PREV_SHOW.Text = "Prev";
             this.CheckBox_ACCT_CALC_PREV_SHOW.UseVisualStyleBackColor = true;
             // 
+            // CheckBox_ACCT_COMM_SPANISH
+            // 
+            this.CheckBox_ACCT_COMM_SPANISH.AutoSize = true;
+            this.CheckBox_ACCT_COMM_SPANISH.Location = new System.Drawing.Point(433, 770);
+            this.CheckBox_ACCT_COMM_SPANISH.Name = "CheckBox_ACCT_COMM_SPANISH";
+            this.CheckBox_ACCT_COMM_SPANISH.Size = new System.Drawing.Size(55, 17);
+            this.CheckBox_ACCT_COMM_SPANISH.TabIndex = 99;
+            this.CheckBox_ACCT_COMM_SPANISH.Text = "SPAN";
+            this.CheckBox_ACCT_COMM_SPANISH.UseVisualStyleBackColor = true;
+            this.CheckBox_ACCT_COMM_SPANISH.Visible = false;
+            // 
             // Main_Window
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(3054, 971);
+            this.Controls.Add(this.CheckBox_ACCT_COMM_SPANISH);
             this.Controls.Add(this.CheckBox_ACCT_CALC_PREV_SHOW);
             this.Controls.Add(this.lbl_ACLT_MISC_NOTES);
             this.Controls.Add(this.Button_PDF2_Open);
@@ -1199,5 +1212,6 @@
         private System.Windows.Forms.CheckBox CheckBox_ReverseSort;
         private System.Windows.Forms.CheckBox CheckBox_ACCT_CALC_PREV;
         private System.Windows.Forms.CheckBox CheckBox_ACCT_CALC_PREV_SHOW;
+        private System.Windows.Forms.CheckBox CheckBox_ACCT_COMM_SPANISH;
     }
 }

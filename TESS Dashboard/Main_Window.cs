@@ -39,7 +39,7 @@ namespace TESS_Dashboard
             try
             {
                 GetCountyOptions(CONN);
-                GetClientStatusOptions(CONN);
+                GetNeedFromClientOptions(CONN);
                 GetSalesStatusOptions(CONN);
 
                 //MPA 12/18/2019 Here, lock final approval if user is not privileged!
@@ -65,9 +65,17 @@ namespace TESS_Dashboard
             
         }
 
-        private void GetClientStatusOptions(SqlConnection con)
+        private void GetNeedFromClientOptions(SqlConnection con)
         {
-            string SqlStr = "SELECT DISTINCT ACLT_STATUS FROM tblACCT_CLIENT WHERE ACLT_STATUS LIKE 'Need%' ORDER BY ACLT_STATUS";
+            string SqlStr;
+            if (CheckBox_ACCT_COMM_SPANISH.Checked)
+            {
+                SqlStr = "SELECT DISTINCT FIELD_VALUE AS ACLT_NEED_FROM_CLIENT FROM tblField WHERE FIELD_NAME = 'ACLT_NEED_FROM_CLIENT' AND FIELD_VALUE LIKE 'Necesita%' ORDER BY ACLT_NEED_FROM_CLIENT";
+            }
+            else
+            {
+                SqlStr = "SELECT DISTINCT FIELD_VALUE AS ACLT_NEED_FROM_CLIENT FROM tblField WHERE FIELD_NAME = 'ACLT_NEED_FROM_CLIENT' AND FIELD_VALUE LIKE 'Need%' ORDER BY ACLT_NEED_FROM_CLIENT";
+            }
 
             SqlCommand cmd = new SqlCommand(SqlStr, con);
 
@@ -75,7 +83,7 @@ namespace TESS_Dashboard
             DataTable dt = new DataTable();
             da.Fill(dt);
 
-            ComboBox_NeedsReview.DisplayMember = "ACLT_STATUS";
+            ComboBox_NeedsReview.DisplayMember = "ACLT_NEED_FROM_CLIENT";
 
             ComboBox_NeedsReview.DataSource = dt;
         }
@@ -132,6 +140,7 @@ namespace TESS_Dashboard
             RequestFields.Add("ACCT_CONTACT_NAME2_MIDDLE", typeof(string));
             RequestFields.Add("ACCT_CONTACT_NAME2_LAST", typeof(string));
             RequestFields.Add("ACCT_CONTACT_NAME2_SUFFIX", typeof(string));
+            RequestFields.Add("ACCT_COMM_SPANISH", typeof(string)); //MPA 1/27/2021 and corresponding field 
 
             RequestFields.Add("ASLS_STATUS", typeof(string));
             RequestFields.Add("ASLS_SALESMAN", typeof(string));
@@ -743,6 +752,9 @@ namespace TESS_Dashboard
                 CheckBox_ACLT_FILE_NEXT.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_NEXT"].Index].Value ?? false);
                 CheckBox_ACLT_FILE_PREV.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_PREV"].Index].Value ?? false);
 
+                //MPA 1/27/2021
+                CheckBox_ACCT_COMM_SPANISH.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_COMM_SPANISH"].Index].Value ?? false);
+               
                 //MPA 11/6/2020
                 //try block as a SUPER messy way to deal with uncertainty of whether ACCT_CALC_PREV was included
                 try
@@ -904,7 +916,7 @@ namespace TESS_Dashboard
 
                     SQLcommander ClientCommand = new SQLcommander(CONN);
                     ClientCommand.TableName = "tblACCT_CLIENT";
-                    ClientCommand.AddRequest("ACLT_STATUS = '" + ((System.Data.DataRowView)ComboBox_NeedsReview.SelectedValue).Row.ItemArray[0] + "'");
+                    ClientCommand.AddRequest("ACLT_NEED_FROM_CLIENT = '" + ((System.Data.DataRowView)ComboBox_NeedsReview.SelectedValue).Row.ItemArray[0] + "'");
                     ClientCommand.AddCondition("ACLT_ACCT = " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value));
                     ClientCommand.Update();
 
