@@ -227,12 +227,14 @@ namespace TESS_Dashboard
 
             if (DateTimePicker_App_Recv_From.Checked)
             {
-                ConditionFields.Add("ACLT_APPL_RECV >= @ACLT_APPL_RECV_FROM", new Tuple<string, object>("@ACLT_APPL_RECV_FROM", new DateTime(DateTimePicker_App_Recv_From.Value.Year, DateTimePicker_App_Recv_From.Value.Month, DateTimePicker_App_Recv_From.Value.Day)));
+                //MPA 2/10/2021 Specified from start of day
+                ConditionFields.Add("ACLT_APPL_RECV >= @ACLT_APPL_RECV_FROM", new Tuple<string, object>("@ACLT_APPL_RECV_FROM", new DateTime(DateTimePicker_App_Recv_From.Value.Year, DateTimePicker_App_Recv_From.Value.Month, DateTimePicker_App_Recv_From.Value.Day,0,0,0)));
             }
 
             if (DateTimePicker_App_Recv_To.Checked)
             {
-                ConditionFields.Add("ACLT_APPL_RECV <= @ACLT_APPL_RECV_TO", new Tuple<string, object>("@ACLT_APPL_RECV_TO", new DateTime(DateTimePicker_App_Recv_To.Value.Year, DateTimePicker_App_Recv_To.Value.Month ,DateTimePicker_App_Recv_To.Value.Day)));
+                //MPA 2/10/2021 Specified through end of day
+                ConditionFields.Add("ACLT_APPL_RECV <= @ACLT_APPL_RECV_TO", new Tuple<string, object>("@ACLT_APPL_RECV_TO", new DateTime(DateTimePicker_App_Recv_To.Value.Year, DateTimePicker_App_Recv_To.Value.Month ,DateTimePicker_App_Recv_To.Value.Day,23,59,59)));
             }
 
             ConditionFields.Add("ACLT_AGR_TYPE = @Type", new Tuple<string, object>("@Type", 'T'));
@@ -652,6 +654,16 @@ namespace TESS_Dashboard
                 //The If Null (??) Statements are probably needless considering nulls are already guarded against from being in the grid in the first place
 
 
+                //Conditionals
+                //MPA 2/22/2021 Updating logic to work for any year.
+
+                int TodayEffectiveYear = DateTime.Now.Year;
+                if (DateTime.Now.Month < 2)
+                {
+                    TodayEffectiveYear -= 1;
+                }
+
+
                 lbl_ACCT.Text = Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value ?? "");
                 CheckBox_ACCT_CANCEL.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_CANCEL"].Index].Value ?? false);
 
@@ -752,6 +764,10 @@ namespace TESS_Dashboard
                 CheckBox_ACLT_FILE_NEXT.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_NEXT"].Index].Value ?? false);
                 CheckBox_ACLT_FILE_PREV.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_FILE_PREV"].Index].Value ?? false);
 
+
+                //MPA 2/22/2021 draw attention if older acct
+                lbl_ACCT_TAX_YEAR.BackColor = Convert.ToInt32(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_TAX_YEAR"].Index].Value) <= TodayEffectiveYear - 2 ? Color.Orange : DefaultBackColor;
+
                 //MPA 1/27/2021
                 CheckBox_ACCT_COMM_SPANISH.Checked = (bool)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT_COMM_SPANISH"].Index].Value ?? false);
                
@@ -765,19 +781,18 @@ namespace TESS_Dashboard
                 {
 
                 }
- 
-                //Conditionals
 
+                //MPA 2/22/2021 note that we might end up wanting to use acct tax year for this logic instead of effective year, or in conjunction
                 CheckBox_ACLT_FILE_PREV.BackColor = (!CheckBox_ACLT_FILE_PREV.Checked && (
-                    ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year < 2017
-                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= 1953
-                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= 1953)
-                    ) ? Color.Yellow : CheckBox_ACLT_FILE_PREV.BackColor = DefaultBackColor;
+                    ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year < TodayEffectiveYear - 2 //Was 2017, presumably to match early 2020
+                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= TodayEffectiveYear - 67 //was 1953, presumably to match early 2020
+                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= TodayEffectiveYear - 67)
+                    ) ? Color.Yellow : DefaultBackColor;
                 CheckBox_ACCT_CANCEL.BackColor = CheckBox_ACCT_CANCEL.Checked ? Color.Yellow : DefaultBackColor;
                 //CheckBox_ACLT_EX_O65_APPLIED.BackColor = CheckBox_ACLT_EX_O65_APPLIED.Checked ? Color.Yellow : DefaultBackColor;
-                lbl_POWN_DEED_DATE.BackColor = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year >= 2018 && (
-                    ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= 1953
-                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= 1953
+                lbl_POWN_DEED_DATE.BackColor = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year >= TodayEffectiveYear - 1 && ( //Was 2018, presumably to match early 2020
+                    ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= TodayEffectiveYear - 66 //was 1953, presumably to match early 2020
+                    || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= TodayEffectiveYear - 66
                     ) ? Color.Yellow : DefaultBackColor;
 
                 lbl_ACLT_STATUS.BackColor = lbl_ACLT_STATUS.Text.Length > 0 ? Color.Yellow : DefaultBackColor;
