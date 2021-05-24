@@ -788,6 +788,14 @@ namespace TESS_Dashboard
                     || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB1"].Index].Value)).Year <= TodayEffectiveYear - 67 //was 1953, presumably to match early 2020
                     || ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACLT_DOB2"].Index].Value)).Year <= TodayEffectiveYear - 67)
                     ) ? Color.Yellow : DefaultBackColor;
+
+                //MPA 2/23/2021 maybe there's a better way to condense this logically, but we want to make sure that it isn't checked if we can't even file for it anymore
+                if (Convert.ToInt32(CheckBox_ACLT_FILE_LAST.Text) < TodayEffectiveYear - 2)
+                {
+                    CheckBox_ACLT_FILE_PREV.BackColor = CheckBox_ACLT_FILE_PREV.Checked ? Color.Yellow : DefaultBackColor;
+                }
+                    
+
                 CheckBox_ACCT_CANCEL.BackColor = CheckBox_ACCT_CANCEL.Checked ? Color.Yellow : DefaultBackColor;
                 //CheckBox_ACLT_EX_O65_APPLIED.BackColor = CheckBox_ACLT_EX_O65_APPLIED.Checked ? Color.Yellow : DefaultBackColor;
                 lbl_POWN_DEED_DATE.BackColor = ((DateTime)(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["POWN_DEED_DATE"].Index].Value)).Year >= TodayEffectiveYear - 1 && ( //Was 2018, presumably to match early 2020
@@ -932,6 +940,7 @@ namespace TESS_Dashboard
                     SQLcommander ClientCommand = new SQLcommander(CONN);
                     ClientCommand.TableName = "tblACCT_CLIENT";
                     ClientCommand.AddRequest("ACLT_NEED_FROM_CLIENT = '" + ((System.Data.DataRowView)ComboBox_NeedsReview.SelectedValue).Row.ItemArray[0] + "'");
+                    ClientCommand.AddRequest("ACLT_STATUS_NEXT_STEP = '1a) Incomplete Documents'");
                     ClientCommand.AddCondition("ACLT_ACCT = " + Convert.ToString(DataGridView_Sales_Records.Rows[OnRecord].Cells[DataGridView_Sales_Records.Columns["ACCT"].Index].Value));
                     ClientCommand.Update();
 
